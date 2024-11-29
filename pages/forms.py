@@ -1,12 +1,27 @@
 from django import forms
-from .models import RecruitDetailedPage
+from .models import RecruitDetailPage
 
-
-# RecruitDetailedPage closing 사용자 입력받는 From
-class RecruitDetailedPageForm(forms.ModelForm):
+class RecruitDetailPageForm(forms.ModelForm):
     class Meta:
-        model = RecruitDetailedPage
-        fields = ['date']
+        model = RecruitDetailPage
+        fields = ['title', 'description', 'description_img', 'closing_at']
         widgets = {
-            'date': forms.DateInput()
+            'closing_at': forms.DateTimeInput(
+                attrs={
+                    'type': 'datetime-local',
+                    'class': 'form-control'
+                }
+            ),
+            'title': forms.TextInput(
+                attrs={
+                    'class': 'form-control',
+                    'placeholder': '채용 공고 제목을 입력하세요'
+                }
+            ),
+            'description': forms.Textarea(
+                attrs={
+                    'class': 'form-control',
+                    'placeholder': '채용 공고 내용을 입력하세요'
+                }
+            )
         }
