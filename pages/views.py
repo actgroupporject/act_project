@@ -1,31 +1,27 @@
-from django.shortcuts import get_object_or_404, redirect, render
-from django.views import View
-
-from .forms import RecruitDetailPageForm
-from .models import RecruitDetailPage
+from django.db import models
+from django.utils import timezone
 
 
-class RecruitListView(View):
-    def get(self, request):
-        recruits = RecruitDetailPage.objects.all().order_by("-post_at")
-        return render(request, "recruit_list.html", {"recruits": recruits})
+class TimeStampModel(models.Model):
+    post_at = models.DateTimeField(auto_now_add=True)
+    closing_at = models.DateTimeField()
+
+    class Meta:
+        abstract = True
 
 
-class RecruitDetailView(View):
-    def get(self, request, recruit_id):
-        recruit = get_object_or_404(RecruitDetailPage, pk=recruit_id)
-        data = {"recruit": recruit, "d_day": recruit.get_d_day()}
-        return render(request, "recruit_detail.html", data)
+class RecruitDetailPage(TimeStampModel):
+    title = models.CharField(max_length=50, help_text="채용 공고 제목")
+    description = models.TextField(help_text="채용 공고 상세 설명")
+    description_img = models.ImageField(upload_to="recruits/", blank=True, null=True)
+
+    def get_d_day(self):
+        now = timezone.now().date()
+        closing_date = self.closing_at.date()
+        return (closing_date - now).days
+
+    class Meta:
+        db_table = "recruit_detail_page"
 
 
-class RecruitCreateView(View):
-    def get(self, request):
-        form = RecruitDetailPageForm()
-        return render(request, "recruit_form.html", {"form": form})
-
-    def post(self, request):
-        form = RecruitDetailPageForm(request.POST, request.FILES)
-        if form.is_valid():
-            recruit = form.save()
-            return redirect("recruit_detail", recruit_id=recruit.id)
-        return render(request, "recruit_form.html", {"form": form})
+# Remove the import of RecruitDetailPageForm from here
