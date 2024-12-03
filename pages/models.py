@@ -1,19 +1,9 @@
-# models.py
-from django.db import models
 from django.core.validators import FileExtensionValidator
-
-
-class Recruit(models.Model):
-    title = models.CharField(max_length=100, verbose_name="공고 제목")
-    status = models.CharField(max_length=20, default="진행중")
-    period = models.CharField(max_length=50, verbose_name="모집기간")
-
-    class Meta:
-        db_table = "casting"
+from django.db import models
 
 
 class RecruitDetail(models.Model):
-    recruit = models.ForeignKey(Recruit, on_delete=models.CASCADE)
+    title = models.CharField(max_length=100, verbose_name="공고 제목")
     work_category = models.CharField(max_length=50, verbose_name="작품 카테고리")
     work_title = models.CharField(max_length=100, verbose_name="작품명")
     director = models.CharField(max_length=50, verbose_name="감독")
@@ -21,23 +11,26 @@ class RecruitDetail(models.Model):
     requirements = models.TextField(verbose_name="모집 상세 내용")
     casting_type = models.CharField(max_length=50, verbose_name="모집 유형")
     apply_method = models.CharField(max_length=50, verbose_name="지원 방법")
-    deadline = models.DateField(verbose_name="촬영 일정")
+    deadline = models.DateField(verbose_name="마감일")
+
+    def get_d_day(self):
+        from datetime import timezone
+
+        return (self.deadline - timezone.now().date()).days
 
     class Meta:
         db_table = "casting_detail"
 
 
 class RecruitImage(models.Model):
-    recruit = models.ForeignKey(Recruit, on_delete=models.CASCADE)
     image = models.ImageField(
-        upload_to='casting_images/',
-        validators=[FileExtensionValidator(['jpg', 'jpeg', 'png'])],
-        verbose_name="공고 이미지"
+        upload_to="casting_images/",
+        validators=[FileExtensionValidator(["jpg", "jpeg", "png"])],
+        verbose_name="공고 이미지",
     )
 
 
 class Application(models.Model):
-    recruit = models.ForeignKey(Recruit, on_delete=models.CASCADE)
     height = models.CharField(max_length=10, verbose_name="키")
     weight = models.CharField(max_length=10, verbose_name="몸무게")
     age = models.IntegerField(verbose_name="나이")
@@ -46,12 +39,14 @@ class Application(models.Model):
     class Meta:
         db_table = "applications"
 
+
 class Category(models.Model):
     Big_name = models.CharField(max_length=10, help_text="대분류")
     Small_name = models.CharField(max_length=10, help_text="소분류")
 
     def __str__(self):
         return f"{self.Big_name} - {self.Small_name}"
+
 
 class PoleCategory(models.Model):
     POLE_CHOICES = [
@@ -69,6 +64,7 @@ class PoleCategory(models.Model):
     def __str__(self):
         return self.name
 
+
 class ActorCategory(models.Model):
     ACTOR_CHOICES = [
         ("주연", "주연"),
@@ -84,12 +80,9 @@ class ActorCategory(models.Model):
     def __str__(self):
         return self.name
 
+
 class HowToCategory(models.Model):
-    HOW_TO_CHOICES = [
-        ("Email", "Email"),
-        ("Phone", "Phone"),
-        ("양식", "양식")
-    ]
+    HOW_TO_CHOICES = [("Email", "Email"), ("Phone", "Phone"), ("양식", "양식")]
     method = models.CharField(max_length=10, choices=HOW_TO_CHOICES)
 
     def __str__(self):
@@ -97,7 +90,9 @@ class HowToCategory(models.Model):
 
     def get_absolute_url(self):
         from django.urls import reverse
-        return reverse('how_to_category_detail', args=[str(self.id)])
+
+        return reverse("how_to_category_detail", args=[str(self.id)])
+
 
 class Actor_Info_Category(models.Model):
     ACTOR_INFO_CHOICES1 = [
@@ -112,5 +107,5 @@ class Actor_Info_Category(models.Model):
         ("40대", "40대"),
         ("50대", "50대"),
         ("60대", "60대"),
-        ("60대 이상", "60대 이상")
+        ("60대 이상", "60대 이상"),
     ]
