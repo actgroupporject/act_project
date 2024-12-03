@@ -1,27 +1,98 @@
-from django.db import models
-from django.utils import timezone
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+from django.views.generic import ListView, DetailView, DeleteView, CreateView, UpdateView
+from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse_lazy
+from django.contrib import messages
+from .models import RecruitDetail, Application
+from .forms import RecruitDetailForm, ApplicationForm
 
 
-class TimeStampModel(models.Model):
-    post_at = models.DateTimeField(auto_now_add=True)
-    closing_at = models.DateTimeField()
+class RecruitListView(ListView):
+    model = RecruitDetail
+    template_name = 'recruit/list.html'
+    context_object_name = 'recruits'
 
-    class Meta:
-        abstract = True
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        filters = {}
+
+        # 필터링 로직
+        category = self.request.GET.get('category')
+        pole_category = self.request.GET.get('pole_category')
+        actor_category = self.request.GET.get('actor_category')
+
+        if category:
+            filters['category'] = category
+        if pole_category:
+            filters['pole_category'] = pole_category
+        if actor_category:
+            filters['actor_category'] = actor_category
+
+        return queryset.filter(**filters)
 
 
-class RecruitDetailPage(TimeStampModel):
-    title = models.CharField(max_length=50, help_text="채용 공고 제목")
-    description = models.TextField(help_text="채용 공고 상세 설명")
-    description_img = models.ImageField(upload_to="recruits/", blank=True, null=True)
+class RecruitDetailView(DetailView):
+    model = RecruitDetail
+    template_name = 'recruit/detail.html'
 
-    def get_d_day(self):
-        now = timezone.now().date()
-        closing_date = self.closing_at.date()
-        return (closing_date - now).days
-
-    class Meta:
-        db_table = "recruit_detail_page"
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['d_day'] = self.object.get_d_day()
+        return context
 
 
-# Remove the import of RecruitDetailPageForm from here
+@method_decorator(login_required, name='dispatch')
+class RecruitCreateView(CreateView):
+    model = RecruitDetail
+    form_class = RecruitDetailForm
+    template_name = 'recruit/form.html'
+
+    def form_valid(self, form):
+        recruit = form.save()
+        messages.success(self.request, "채용 공고가 저장되었습니다.")
+        return redirect('recruit:detail', pk=recruit.pk)
+
+
+@method_decorator(login_required, name='dispatch')
+class RecruitUpdateView(UpdateView):
+    model = RecruitDetail
+    form_class = RecruitDetailForm
+    template_name = 'recruit/form.html'
+
+    def form_valid(self, form):
+        recruit = form.save()
+        messages.success(self.request, "채용 공고가 저장되었습니다.")
+        return redirect('recruit:detail', pk=recruit.pk)
+
+@method_decorator(login_required, name='dispatch')
+class RecruitDeleteView(DeleteView):
+    model = RecruitDetail
+    success_url = reverse_lazy('recruit:list')
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(request, "채용 공고가 삭제되었습니다.")
+        return super().delete(request, *args, **kwargs)
+
+
+@method_decorator(login_required, name='dispatch')
+class ApplicationView:
+    @staticmethod
+    def apply(request, recruit_id):
+        recruit = get_object_or_404(RecruitDetail, id=recruit_id)
+
+        if request.method == "POST":
+            form = ApplicationForm(request.POST, request.FILES)
+            if form.is_valid():
+                application = form.save(commit=False)
+                application.recruit = recruit
+                application.save()
+                messages.success(request, "지원이 완료되었습니다.")
+                return redirect('application_complete')
+        else:
+            form = ApplicationForm()
+
+        return render(request, 'apply_form.html', {
+            'form': form,
+            'recruit': recruit
+        })
