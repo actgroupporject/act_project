@@ -15,3 +15,4 @@ class RecruitDetailAdmin(admin.ModelAdmin):
     list_display = ["title", "work_category", "casting_type", "work_title", "get_d_day"]
     list_filter = ["work_category", "casting_type"]
     search_fields = ["title", "work_title", "requirements"]
+
