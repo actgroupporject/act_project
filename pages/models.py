@@ -1,43 +1,6 @@
 from django.core.validators import FileExtensionValidator
 from django.db import models
-
-
-class RecruitDetail(models.Model):
-    title = models.CharField(max_length=100, verbose_name="공고 제목")
-    work_category = models.CharField(max_length=50, verbose_name="작품 카테고리")
-    work_title = models.CharField(max_length=100, verbose_name="작품명")
-    director = models.CharField(max_length=50, verbose_name="감독")
-    production = models.CharField(max_length=100, verbose_name="제작사")
-    requirements = models.TextField(verbose_name="모집 상세 내용")
-    casting_type = models.CharField(max_length=50, verbose_name="모집 유형")
-    apply_method = models.CharField(max_length=50, verbose_name="지원 방법")
-    deadline = models.DateField(verbose_name="마감일")
-
-    def get_d_day(self):
-        from datetime import timezone
-
-        return (self.deadline - timezone.now().date()).days
-
-    class Meta:
-        db_table = "casting_detail"
-
-
-class RecruitImage(models.Model):
-    image = models.ImageField(
-        upload_to="casting_images/",
-        validators=[FileExtensionValidator(["jpg", "jpeg", "png"])],
-        verbose_name="공고 이미지",
-    )
-
-
-class Application(models.Model):
-    height = models.CharField(max_length=10, verbose_name="키")
-    weight = models.CharField(max_length=10, verbose_name="몸무게")
-    age = models.IntegerField(verbose_name="나이")
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        db_table = "applications"
+from django.utils import timezone
 
 
 class Category(models.Model):
@@ -109,3 +72,64 @@ class Actor_Info_Category(models.Model):
         ("60대", "60대"),
         ("60대 이상", "60대 이상"),
     ]
+    gender = models.CharField(max_length=10, choices=ACTOR_INFO_CHOICES1)
+    age_range = models.CharField(max_length=10, choices=ACTOR_INFO_CHOICES2)
+
+    def __str__(self):
+        return f"{self.gender} - {self.age_range}"
+
+
+class BookMark(models.Model):
+    title = models.CharField("TITLE", max_length=100, blank=True)
+    url = models.URLField("URL", unique=True)
+
+    def __str__(self):
+        return self.title
+
+
+class RecruitMain(models.Model):
+    work_title = models.CharField(max_length=100, verbose_name="작품명")
+    work_category = models.ForeignKey(Category, on_delete=models.CASCADE, verbose_name="작품 카테고리")
+    deadline = models.DateField(verbose_name="마감일")
+    bookmarks = models.ManyToManyField(BookMark, blank=True)
+    polecategory = models.ForeignKey(PoleCategory, on_delete=models.CASCADE)
+    actorcategory = models.ForeignKey(ActorCategory, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.work_title
+
+
+class RecruitDetail(models.Model):
+    recruitmain = models.OneToOneField(RecruitMain, on_delete=models.CASCADE)
+    title = models.CharField(max_length=100, verbose_name="공고 제목")
+    director = models.CharField(max_length=50, verbose_name="감독")
+    production = models.CharField(max_length=100, verbose_name="제작사")
+    requirements = models.TextField(verbose_name="모집 상세 내용")
+    casting_type = models.CharField(max_length=50, verbose_name="모집 유형")
+    apply_method = models.ForeignKey(HowToCategory, on_delete=models.CASCADE, verbose_name="지원 방법")
+
+    def get_d_day(self):
+        return (self.recruitmain.deadline - timezone.now().date()).days
+
+    class Meta:
+        db_table = "casting_detail"
+
+
+class RecruitImage(models.Model):
+    recruit = models.ForeignKey(RecruitMain, on_delete=models.CASCADE, related_name="images")
+    image = models.ImageField(
+        upload_to="casting_images/",
+        validators=[FileExtensionValidator(["jpg", "jpeg", "png"])],
+        verbose_name="공고 이미지",
+    )
+
+
+class Application(models.Model):
+    recruit = models.ForeignKey(RecruitMain, on_delete=models.CASCADE, related_name="applications")
+    height = models.CharField(max_length=10, verbose_name="키")
+    weight = models.CharField(max_length=10, verbose_name="몸무게")
+    age = models.IntegerField(verbose_name="나이")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "applications"
