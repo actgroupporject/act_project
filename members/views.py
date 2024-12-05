@@ -13,7 +13,7 @@ def user_register_view(request):
         name = request.POST.get("name")
         password = request.POST.get("password")
         confirm_password = request.POST.get("confirm_password")
-
+        # 주소, 생년월일, 전화번호
         if password != confirm_password:
             messages.error(request, "비밀번호가 일치하지 않습니다.")
             return redirect("user_register")
@@ -37,7 +37,7 @@ def company_register_view(request):
         confirm_password = request.POST.get("confirm_password")
         phone_number = request.POST.get("phone_number")
         company_url = request.POST.get("company_url")
-
+        # 담당자 명, 사업자 등록번호
         if password != confirm_password:
             messages.error(request, "비밀번호가 일치하지 않습니다.")
             return redirect("company_register")

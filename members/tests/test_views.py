@@ -12,7 +12,7 @@ User = get_user_model()
 
 class UserRegistrationTestCase(TestCase):
     def test_user_register_success(self):
-        """성공적인 유저 회원가입 테스트"""
+        # 유저 회원가입 테스트
         response = self.client.post(
             reverse("user_register"),
             {
@@ -26,7 +26,7 @@ class UserRegistrationTestCase(TestCase):
         self.assertTrue(User.objects.filter(email="testuser@example.com").exists())  # 유저 생성 확인
 
     def test_user_register_password_mismatch(self):
-        """비밀번호 불일치로 인한 회원가입 실패 테스트"""
+        # 비밀번호 틀린 가입실패 테스트
         response = self.client.post(
             reverse("user_register"),
             {
@@ -42,7 +42,7 @@ class UserRegistrationTestCase(TestCase):
 
 class CompanyRegistrationTestCase(TestCase):
     def test_company_register_success(self):
-        """성공적인 회사 회원가입 테스트"""
+        # 회사 가입 테스트
         response = self.client.post(
             reverse("company_register"),
             {
@@ -58,7 +58,7 @@ class CompanyRegistrationTestCase(TestCase):
         self.assertTrue(Company.objects.filter(email="testcompany@example.com").exists())  # 회사 생성 확인
 
     def test_company_register_password_mismatch(self):
-        """비밀번호 불일치로 인한 회사 회원가입 실패 테스트"""
+        # 회원가입 실패 테스트
         response = self.client.post(
             reverse("company_register"),
             {
@@ -76,14 +76,14 @@ class CompanyRegistrationTestCase(TestCase):
 
 class LoginTestCase(TestCase):
     def setUp(self):
-        """테스트를 위한 유저와 회사 생성"""
+        # 성공 테스트
         self.user = User.objects.create_user(email="user@example.com", name="Test User", password="password123")
         self.company = Company.objects.create_user(
             email="company@example.com", name="Test Company", password="password123", phone_number="123456789"
         )
 
     def test_user_login_success(self):
-        """유저 로그인 성공 테스트"""
+        # 유저 로그인 성공 테스트
         response = self.client.post(
             reverse("login"),
             {"email": "user@example.com", "password": "password123", "user_type": "user"},
@@ -92,7 +92,7 @@ class LoginTestCase(TestCase):
         self.assertRedirects(response, reverse("user_home"))  # 유저 홈 리다이렉트 확인
 
     def test_company_login_success(self):
-        """회사 로그인 성공 테스트"""
+        # 회사 로그인 성공 테스트
         response = self.client.post(
             reverse("login"),
             {"email": "company@example.com", "password": "password123", "user_type": "company"},
@@ -101,7 +101,7 @@ class LoginTestCase(TestCase):
         self.assertRedirects(response, reverse("company_home"))  # 회사 홈 리다이렉트 확인
 
     def test_login_invalid_credentials(self):
-        """잘못된 자격 증명으로 로그인 실패 테스트"""
+        # 실패 테스트
         response = self.client.post(
             reverse("login"),
             {"email": "wrong@example.com", "password": "wrongpassword", "user_type": "user"},
@@ -112,12 +112,12 @@ class LoginTestCase(TestCase):
 
 class LogoutTestCase(TestCase):
     def setUp(self):
-        """로그아웃 테스트를 위한 유저 생성 및 로그인"""
+        # 유저 생성
         self.user = User.objects.create_user(email="user@example.com", name="Test User", password="password123")
         self.client.login(email="user@example.com", password="password123")
 
     def test_logout(self):
-        """로그아웃 성공 테스트"""
+        # 로그아웃 성공
         response = self.client.get(reverse("logout"))
         self.assertEqual(response.status_code, 302)  # 리다이렉트 확인
         self.assertRedirects(response, reverse("login"))  # 로그인 페이지 리다이렉트 확인

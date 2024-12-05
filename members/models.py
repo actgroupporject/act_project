@@ -14,10 +14,8 @@ class BaseModel(models.Model):
         abstract = True
 
 
+# 관리자
 class CustomUserManager(BaseUserManager):
-    """
-    Custom manager for the User model.
-    """
 
     def create_user(self, email, password=None, **extra_fields):
         if not email:
@@ -40,10 +38,20 @@ class CustomUserManager(BaseUserManager):
         return self.create_user(email, password, **extra_fields)
 
 
+# 사용자
 class User(AbstractBaseUser, PermissionsMixin):
-    """
-    Custom User model extending AbstractBaseUser.
-    """
+    groups = models.ManyToManyField(
+        "auth.Group",
+        related_name="custom_user_set",
+        blank=True,
+        verbose_name="그룹",
+    )
+    user_permissions = models.ManyToManyField(
+        "auth.Permission",
+        related_name="custom_user_permissions_set",
+        blank=True,
+        verbose_name="권한",
+    )
 
     email = models.EmailField(unique=True, verbose_name="이메일")
     name = models.CharField(max_length=50, verbose_name="이름")
@@ -73,10 +81,20 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.email
 
 
+# 회사
 class Company(AbstractBaseUser, PermissionsMixin):
-    """
-    Custom Company model extending AbstractBaseUser.
-    """
+    groups = models.ManyToManyField(
+        "auth.Group",
+        related_name="custom_company_set",
+        blank=True,
+        verbose_name="그룹",
+    )
+    user_permissions = models.ManyToManyField(
+        "auth.Permission",
+        related_name="custom_company_permissions_set",
+        blank=True,
+        verbose_name="권한",
+    )
 
     email = models.EmailField(unique=True, verbose_name="회사 이메일")
     name = models.CharField(max_length=50, verbose_name="회사 이름")
