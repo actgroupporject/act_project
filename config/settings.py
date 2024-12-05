@@ -26,7 +26,7 @@ SECRET_KEY = "django-insecure-@yzxvw)&c!-2#-w*ey2u!-85$7kvyzzb16#4&1q@%(f$njyp)g
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS: list[str] = []
+ALLOWED_HOSTS: list[str] = ["*"]
 
 
 # Application definition
@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "black",
     "pages",
     "members",
 ]
@@ -79,7 +80,11 @@ WSGI_APPLICATION = "config.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "NAME": "actor",
+        "USER": "root",
+        "PASSWORD": "0123",
+        "HOST": "local",
+        "PORT": "5432",
     }
 }
 
