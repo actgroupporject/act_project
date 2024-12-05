@@ -1,95 +1,78 @@
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import render, get_object_or_404, redirect
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
-from django.utils.decorators import method_decorator
-from django.views.generic import (
-    CreateView,
-    DeleteView,
-    DetailView,
-    ListView,
-    UpdateView,
-    View,
-)
-
-from .forms import ApplicationForm, RecruitDetailForm
-from .models import Application, RecruitDetail
+from .models import RecruitMain, RecruitDetail, BookMark, Application
 
 
-class RecruitListView(ListView):
-    model = RecruitDetail
-    template_name = "recruit/list.html"
-    context_object_name = "recruits"
-
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        filters = {}
-
-        category = self.request.GET.get("category")
-        pole_category = self.request.GET.get("pole_category")
-        actor_category = self.request.GET.get("actor_category")
-
-        if category:
-            filters["category"] = category
-        if pole_category:
-            filters["pole_category"] = pole_category
-        if actor_category:
-            filters["actor_category"] = actor_category
-
-        return queryset.filter(**filters)
+class RecruitMainListView(ListView):
+    model = RecruitMain
+    template_name = 'recruit_main_list.html'
+    context_object_name = 'recruits'
 
 
-class RecruitDetailView(DetailView):
-    model = RecruitDetail
-    template_name = "recruit/detail.html"
+class RecruitMainDetailView(DetailView):
+    model = RecruitMain
+    template_name = 'recruit_main_detail.html'
+    context_object_name = 'recruit'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["d_day"] = self.object.get_d_day()
+        context['detail'] = self.object.recruitdetail
+        context['images'] = self.object.images.all()
         return context
 
 
-@method_decorator(login_required, name="dispatch")
-class RecruitCreateView(CreateView):
-    model = RecruitDetail
-    form_class = RecruitDetailForm
-    template_name = "recruit/form.html"
+class RecruitMainCreateView(CreateView):
+    model = RecruitMain
+    template_name = 'recruit_main_form.html'
+    fields = ['work_title', 'work_category', 'deadline', 'polecategory', 'actorcategory']
+    success_url = reverse_lazy('recruit_main_list')
+
+
+class RecruitMainUpdateView(UpdateView):
+    model = RecruitMain
+    template_name = 'recruit_main_form.html'
+    fields = ['work_title', 'work_category', 'deadline', 'polecategory', 'actorcategory']
+    success_url = reverse_lazy('recruit_main_list')
+
+
+class RecruitMainDeleteView(DeleteView):
+    model = RecruitMain
+    template_name = 'recruit_main_confirm_delete.html'
+    success_url = reverse_lazy('recruit_main_list')
+
+
+class BookMarkListView(ListView):
+    model = BookMark
+    template_name = 'bookmark_list.html'
+    context_object_name = 'bookmarks'
+
+
+class BookMarkCreateView(CreateView):
+    model = BookMark
+    template_name = 'bookmark_form.html'
+    fields = ['title', 'url']
+    success_url = reverse_lazy('bookmark_list')
+
+
+def add_bookmark(request, pk):
+    recruit = get_object_or_404(RecruitMain, pk=pk)
+    bookmark, created = BookMark.objects.get_or_create(
+        title=recruit.work_title,
+        url=request.build_absolute_uri(recruit.get_absolute_url())
+    )
+    recruit.bookmarks.add(bookmark)
+    return redirect('recruit_main_detail', pk=pk)
+
+
+class ApplicationCreateView(CreateView):
+    model = Application
+    template_name = 'application_form.html'
+    fields = ['height', 'weight', 'age']
 
     def form_valid(self, form):
-        recruit = form.save()
-        messages.success(self.request, "채용 공고가 저장되었습니다.")
-        return redirect("recruit:detail", pk=recruit.pk)
+        form.instance.recruit = get_object_or_404(RecruitMain, pk=self.kwargs['pk'])
+        return super().form_valid(form)
 
-
-@method_decorator(login_required, name="dispatch")
-class RecruitUpdateView(UpdateView):
-    model = RecruitDetail
-    form_class = RecruitDetailForm
-    template_name = "recruit/form.html"
-
-
-@method_decorator(login_required, name="dispatch")
-class RecruitDeleteView(DeleteView):
-    model = RecruitDetail
-    success_url = reverse_lazy("recruit:list")
-
-    def delete(self, request, *args, **kwargs):
-        messages.success(request, "채용 공고가 삭제되었습니다.")
-        return super().delete(request, *args, **kwargs)
-
-
-@method_decorator(login_required, name="dispatch")
-class ApplicationView(View):
-    @staticmethod
-    def apply(request, recruit_id):
-        if request.method == "POST":
-            form = ApplicationForm(request.POST, request.FILES)
-            if form.is_valid():
-                application = form.save(commit=False)
-                application.save()
-                messages.success(request, "지원이 완료되었습니다.")
-                return redirect("application_complete")
-        else:
-            form = ApplicationForm()
-
-        return render(request, "apply_form.html", {"form": form})
+    def get_success_url(self):
+        return reverse_lazy('recruit_main_detail', kwargs={'pk': self.kwargs['pk']})

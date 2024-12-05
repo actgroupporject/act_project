@@ -6,7 +6,7 @@ from .models import (
     Category,
     HowToCategory,
     PoleCategory,
-    RecruitDetail,
+    RecruitDetail, BookMark,
 )
 
 
@@ -16,3 +16,7 @@ class RecruitDetailAdmin(admin.ModelAdmin):
     list_filter = ["work_category", "casting_type"]
     search_fields = ["title", "work_title", "requirements"]
 
+
+@admin.register(BookMark)
+class BookMarkAdmin(admin.ModelAdmin):
+    list_display = ("id", "title", "url")
