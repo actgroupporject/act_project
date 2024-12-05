@@ -8,6 +8,7 @@ from django.views.generic import (
     UpdateView,
 )
 
+import members.models
 from .models import Application, BookMark, RecruitDetail, RecruitMain
 
 
@@ -82,3 +83,7 @@ class ApplicationCreateView(CreateView):
 
     def get_success_url(self):
         return reverse_lazy("recruit_main_detail", kwargs={"pk": self.kwargs["pk"]})
+
+
+class ActorProfileCreateView(CreateView):
+    actor = get_object_or_404(members.models.User. pk)
