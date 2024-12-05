@@ -2,12 +2,14 @@ from django.core.validators import FileExtensionValidator
 from django.db import models
 from django.utils import timezone
 
+
 class Category(models.Model):
     Big_name = models.CharField(max_length=10, help_text="대분류")
     Small_name = models.CharField(max_length=10, help_text="소분류")
 
     def __str__(self):
         return f"{self.Big_name} - {self.Small_name}"
+
 
 class PoleCategory(models.Model):
     POLE_CHOICES = [
@@ -25,6 +27,7 @@ class PoleCategory(models.Model):
     def __str__(self):
         return self.name
 
+
 class ActorCategory(models.Model):
     ACTOR_CHOICES = [
         ("주연", "주연"),
@@ -40,6 +43,7 @@ class ActorCategory(models.Model):
     def __str__(self):
         return self.name
 
+
 class HowToCategory(models.Model):
     HOW_TO_CHOICES = [("Email", "Email"), ("Phone", "Phone"), ("양식", "양식")]
     method = models.CharField(max_length=10, choices=HOW_TO_CHOICES)
@@ -49,7 +53,9 @@ class HowToCategory(models.Model):
 
     def get_absolute_url(self):
         from django.urls import reverse
+
         return reverse("how_to_category_detail", args=[str(self.id)])
+
 
 class Actor_Info_Category(models.Model):
     ACTOR_INFO_CHOICES1 = [
@@ -72,12 +78,14 @@ class Actor_Info_Category(models.Model):
     def __str__(self):
         return f"{self.gender} - {self.age_range}"
 
+
 class BookMark(models.Model):
     title = models.CharField("TITLE", max_length=100, blank=True)
     url = models.URLField("URL", unique=True)
 
     def __str__(self):
         return self.title
+
 
 class RecruitMain(models.Model):
     work_title = models.CharField(max_length=100, verbose_name="작품명")
@@ -89,6 +97,7 @@ class RecruitMain(models.Model):
 
     def __str__(self):
         return self.work_title
+
 
 class RecruitDetail(models.Model):
     recruitmain = models.OneToOneField(RecruitMain, on_delete=models.CASCADE)
@@ -105,16 +114,18 @@ class RecruitDetail(models.Model):
     class Meta:
         db_table = "casting_detail"
 
+
 class RecruitImage(models.Model):
-    recruit = models.ForeignKey(RecruitMain, on_delete=models.CASCADE, related_name='images')
+    recruit = models.ForeignKey(RecruitMain, on_delete=models.CASCADE, related_name="images")
     image = models.ImageField(
         upload_to="casting_images/",
         validators=[FileExtensionValidator(["jpg", "jpeg", "png"])],
         verbose_name="공고 이미지",
     )
 
+
 class Application(models.Model):
-    recruit = models.ForeignKey(RecruitMain, on_delete=models.CASCADE, related_name='applications')
+    recruit = models.ForeignKey(RecruitMain, on_delete=models.CASCADE, related_name="applications")
     height = models.CharField(max_length=10, verbose_name="키")
     weight = models.CharField(max_length=10, verbose_name="몸무게")
     age = models.IntegerField(verbose_name="나이")
