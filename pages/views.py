@@ -1,3 +1,5 @@
+from django.contrib.auth.decorators import login_required
+from django.db import router
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import (
@@ -17,7 +19,7 @@ class RecruitMainListView(ListView):
     template_name = "recruit_main_list.html"
     context_object_name = "recruits"
 
-
+@login_required
 class RecruitMainDetailView(DetailView):
     model = RecruitMain
     template_name = "recruit_main_detail.html"
@@ -29,21 +31,21 @@ class RecruitMainDetailView(DetailView):
         context["images"] = self.object.images.all()
         return context
 
-
+@login_required
 class RecruitMainCreateView(CreateView):
     model = RecruitMain
     template_name = "recruit_main_form.html"
     fields = ["work_title", "work_category", "deadline", "polecategory", "actorcategory"]
     success_url = reverse_lazy("recruit_main_list")
 
-
+@login_required
 class RecruitMainUpdateView(UpdateView):
     model = RecruitMain
     template_name = "recruit_main_form.html"
     fields = ["work_title", "work_category", "deadline", "polecategory", "actorcategory"]
     success_url = reverse_lazy("recruit_main_list")
 
-
+@login_required
 class RecruitMainDeleteView(DeleteView):
     model = RecruitMain
     template_name = "recruit_main_confirm_delete.html"
@@ -55,7 +57,7 @@ class BookMarkListView(ListView):
     template_name = "bookmark_list.html"
     context_object_name = "bookmarks"
 
-
+@login_required
 class BookMarkCreateView(CreateView):
     model = BookMark
     template_name = "bookmark_form.html"
@@ -71,7 +73,7 @@ def add_bookmark(request, pk):
     recruit.bookmarks.add(bookmark)
     return redirect("recruit_main_detail", pk=pk)
 
-
+@login_required
 class ApplicationCreateView(CreateView):
     model = Application
     template_name = "application_form.html"
@@ -84,6 +86,6 @@ class ApplicationCreateView(CreateView):
     def get_success_url(self):
         return reverse_lazy("recruit_main_detail", kwargs={"pk": self.kwargs["pk"]})
 
-
+@login_required
 class ActorProfileCreateView(CreateView):
     actor = get_object_or_404(members.models.User. pk)

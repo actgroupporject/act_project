@@ -60,7 +60,7 @@ class HowToCategory(models.Model):
         return reverse("how_to_category_detail", args=[str(self.id)])
 
 
-class Actor_Info_Category(models.Model):
+class ActorInfoCategory(models.Model):
     ACTOR_INFO_CHOICES1 = [
         ("남자", "남자"),
         ("여자", "여자"),
