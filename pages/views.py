@@ -1,3 +1,8 @@
+from typing import Any
+
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db import router
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import (
@@ -8,6 +13,8 @@ from django.views.generic import (
     UpdateView,
 )
 
+import members.models
+
 from .models import Application, BookMark, RecruitDetail, RecruitMain
 
 
@@ -17,7 +24,7 @@ class RecruitMainListView(ListView):
     context_object_name = "recruits"
 
 
-class RecruitMainDetailView(DetailView):
+class RecruitMainDetailView(LoginRequiredMixin, DetailView):
     model = RecruitMain
     template_name = "recruit_main_detail.html"
     context_object_name = "recruit"
@@ -29,21 +36,21 @@ class RecruitMainDetailView(DetailView):
         return context
 
 
-class RecruitMainCreateView(CreateView):
+class RecruitMainCreateView(LoginRequiredMixin, CreateView):
     model = RecruitMain
     template_name = "recruit_main_form.html"
     fields = ["work_title", "work_category", "deadline", "polecategory", "actorcategory"]
     success_url = reverse_lazy("recruit_main_list")
 
 
-class RecruitMainUpdateView(UpdateView):
+class RecruitMainUpdateView(LoginRequiredMixin, UpdateView):
     model = RecruitMain
     template_name = "recruit_main_form.html"
     fields = ["work_title", "work_category", "deadline", "polecategory", "actorcategory"]
     success_url = reverse_lazy("recruit_main_list")
 
 
-class RecruitMainDeleteView(DeleteView):
+class RecruitMainDeleteView(LoginRequiredMixin, DeleteView):  # type: ignore
     model = RecruitMain
     template_name = "recruit_main_confirm_delete.html"
     success_url = reverse_lazy("recruit_main_list")
@@ -55,13 +62,14 @@ class BookMarkListView(ListView):
     context_object_name = "bookmarks"
 
 
-class BookMarkCreateView(CreateView):
+class BookMarkCreateView(LoginRequiredMixin, CreateView):
     model = BookMark
     template_name = "bookmark_form.html"
     fields = ["title", "url"]
     success_url = reverse_lazy("bookmark_list")
 
 
+@login_required
 def add_bookmark(request, pk):
     recruit = get_object_or_404(RecruitMain, pk=pk)
     bookmark, created = BookMark.objects.get_or_create(
@@ -71,7 +79,7 @@ def add_bookmark(request, pk):
     return redirect("recruit_main_detail", pk=pk)
 
 
-class ApplicationCreateView(CreateView):
+class ApplicationCreateView(LoginRequiredMixin, CreateView):
     model = Application
     template_name = "application_form.html"
     fields = ["height", "weight", "age"]
@@ -82,3 +90,16 @@ class ApplicationCreateView(CreateView):
 
     def get_success_url(self):
         return reverse_lazy("recruit_main_detail", kwargs={"pk": self.kwargs["pk"]})
+
+
+class ActorProfileCreateView(LoginRequiredMixin, CreateView):
+    model = members.models.User
+    template_name = "actor_profile_form.html"
+    fields = ["profile_fields_here"]  # 필요한 필드를 지정하세요
+
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy("profile_detail")  # 적절한 URL 이름을 지정하세요
