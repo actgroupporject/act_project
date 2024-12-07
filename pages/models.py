@@ -126,6 +126,7 @@ class RecruitImage(models.Model):
         verbose_name="공고 이미지",
     )
 
+
 # 공고 상세 페이지에서 지원하는거
 class Application(models.Model):
     recruit = models.ForeignKey(RecruitMain, on_delete=models.CASCADE, related_name="applications")
@@ -136,6 +137,7 @@ class Application(models.Model):
 
     class Meta:
         db_table = "applications"
+
 
 class MainPage(models.Model):
     recruitdetails = models.ForeignKey(RecruitDetail, on_delete=models.CASCADE, related_name="main_pages")
@@ -148,6 +150,7 @@ class ActorMain(models.Model):
     def __str__(self):
         return self.user.name
 
+
 class ActorImage(models.Model):
     actor = models.ForeignKey(ActorMain, on_delete=models.CASCADE, related_name="images")
     image = models.ImageField(
@@ -158,7 +161,3 @@ class ActorImage(models.Model):
 
     def __str__(self):
         return f"Image for {self.actor.user.name}"
-
-
-
-
