@@ -1,3 +1,5 @@
+from typing import Any
+
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import router
@@ -48,7 +50,7 @@ class RecruitMainUpdateView(LoginRequiredMixin, UpdateView):
     success_url = reverse_lazy("recruit_main_list")
 
 
-class RecruitMainDeleteView(LoginRequiredMixin, DeleteView):
+class RecruitMainDeleteView(LoginRequiredMixin, DeleteView):  # type: ignore
     model = RecruitMain
     template_name = "recruit_main_confirm_delete.html"
     success_url = reverse_lazy("recruit_main_list")
@@ -92,12 +94,12 @@ class ApplicationCreateView(LoginRequiredMixin, CreateView):
 
 class ActorProfileCreateView(LoginRequiredMixin, CreateView):
     model = members.models.User
-    template_name = 'actor_profile_form.html'
-    fields = ['profile_fields_here']  # 필요한 필드를 지정하세요
+    template_name = "actor_profile_form.html"
+    fields = ["profile_fields_here"]  # 필요한 필드를 지정하세요
 
     def form_valid(self, form):
         form.instance.user = self.request.user
         return super().form_valid(form)
 
     def get_success_url(self):
-        return reverse_lazy('profile_detail')  # 적절한 URL 이름을 지정하세요
+        return reverse_lazy("profile_detail")  # 적절한 URL 이름을 지정하세요
