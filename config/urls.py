@@ -17,9 +17,37 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import include, path
+from drf_spectacular.views import (
+    SpectacularAPIView,
+    SpectacularRedocView,
+    SpectacularSwaggerView,
+)
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+
+from members.views import (
+    GoogleCallbackView,
+    GoogleLoginView,
+    KakaoCallbackView,
+    KakaoLoginView,
+    NaverCallbackView,
+    NaverLoginView,
+)
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
+    path("api/schema/swagger-ui/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
+    path("api/schema/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
+    path("accounts/google/login/", GoogleLoginView.as_view(), name="google-login"),
+    path("accounts/kakao/login/", KakaoLoginView.as_view(), name="kakao-login"),
+    path("accounts/naver/login/", NaverLoginView.as_view(), name="naver-login"),
+    path("accounts/", include("allauth.urls")),
+    path("api/v1/accounts/kakao/callback/", KakaoCallbackView.as_view(), name="kakao-callback"),
+    path("api/v1/accounts/naver/callback/", NaverCallbackView.as_view(), name="naver_callback"),
+    path("api/v1/accounts/google/callback/", GoogleCallbackView.as_view(), name="google_callback"),
     path("", include("pages.urls")),
-    path("members/", include("members.urls")),
+    path("api/", include("members.urls")),
+    # 유저 경로
 ]
