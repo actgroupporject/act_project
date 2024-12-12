@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 import os
 from pathlib import Path
-
+from decouple import config
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -21,12 +21,26 @@ AUTH_USER_MODEL = "members.User"
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-@yzxvw)&c!-2#-w*ey2u!-85$7kvyzzb16#4&1q@%(f$njyp)g"
+SECRET_KEY = config("SECRET_KEY")
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 ALLOWED_HOSTS: list[str] = ["*"]
+
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": ("rest_framework_simplejwt.authentication.JWTAuthentication",),
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Your API Title",
+    "DESCRIPTION": "Your API Description",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": True,
+}
 
 
 # Application definition
@@ -38,9 +52,24 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.sites",
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.kakao",
+    "allauth.socialaccount.providers.naver",
+    "allauth.socialaccount.providers.google",
+    "social_django",
+    "dj_rest_auth",
+    "rest_framework.authtoken",
+    "rest_framework",
+    "drf_spectacular",
+    # "djangorestframework-simplejwt.tokens.AccessToken",
+    # "djangorestframework-simplejwt.tokens.RefreshToken",
     "black",
     "pages",
     "members",
+    # "members.custom_provider",
 ]
 
 MIDDLEWARE = [
@@ -51,7 +80,14 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
 ]
+
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None  # username 필드 제거
+ACCOUNT_EMAIL_REQUIRED = True  # 이메일 필수
+ACCOUNT_USERNAME_REQUIRED = False  # username 필드 비활성화
+ACCOUNT_AUTHENTICATION_METHOD = "email"  # 이메일로 인증
+
 
 ROOT_URLCONF = "config.urls"
 
@@ -73,6 +109,13 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",  # 기본 백엔드
+    "members.authentication_backends.UserBackend",  # 사용자 백엔드
+    "members.authentication_backends.CompanyBackend",  # 회사 백엔드
+    "allauth.account.auth_backends.AuthenticationBackend",  # allauth 인증방식
+]
+
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
@@ -83,6 +126,58 @@ DATABASES = {
         "NAME": BASE_DIR / "db.sqlite3",
     }
 }
+
+SITE_ID = 1
+LOGIN_REDIRECT_URL = "/"
+ACCOUNT_LOGOUT_REDIRECT_URL = "/"
+ACCOUNT_AUTHENTICATION_METHOD = "email"
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_EMAIL_VERIFICATION = "optional"
+
+
+
+
+SOCIALACCOUNT_PROVIDERS = {
+    "kakao": {
+        "APP": {
+            "client_id": config("KAKAO_CLIENT_ID"),
+            "secret": config("KAKAO_SECRET"),
+            "key": "",
+        },
+        "SCOPE": ["profile", "account_email"],
+        "AUTH_PARAMS": {
+            "access_type": "online",
+            "prompt": "select_account",
+        },
+    },
+    "naver": {
+        "APP": {
+            "client_id": config("NAVER_CLIENT_ID"),
+            "secret": config("NAVER_SECRET"),
+            "key": "",
+        },
+        "SCOPE": ["name", "email"],
+        "AUTH_PARAMS": {
+            "access_type": "online",
+            "prompt": "select_account",
+        },
+    },
+    "google": {
+        "APP": {
+            "client_id": config("GOOGLE_CLIENT_ID"),
+            "secret": config("GOOGLE_SECRET"),
+            "key": "",
+        },
+        "SCOPE": ["profile", "email"],
+        "AUTH_PARAMS": {
+            "access_type": "online",
+            "prompt": "select_account",
+        },
+    },
+}
+
 
 
 # Password validation

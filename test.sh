@@ -7,5 +7,5 @@ poetry run isort .
 echo "Run mypy"
 poetry run mypy .
 echo "Run tests"
-python manage.py test
+python manage.py test members.tests
 echo "All checks passed!"

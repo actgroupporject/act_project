@@ -1,10 +1,10 @@
 from django.contrib import admin
-
 from .models import Application, BookMark, RecruitDetail, RecruitMain
 
 
 class RecruitDetailAdmin(admin.ModelAdmin):
     list_display = ["id", "get_work_title", "get_work_category"]
+    # Uncomment the following line if filtering by `work_category` is needed
     # list_filter = ["recruit_main__work_category"]
 
     @admin.display(description="Work Title")
@@ -30,6 +30,7 @@ class BookMarkAdmin(admin.ModelAdmin):
     list_display = ["title", "url"]
 
 
+# Registering models with their respective admin configurations
 admin.site.register(RecruitDetail, RecruitDetailAdmin)
 admin.site.register(RecruitMain, RecruitMainAdmin)
 admin.site.register(Application, ApplicationAdmin)

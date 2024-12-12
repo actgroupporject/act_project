@@ -75,8 +75,8 @@ class ActorInfoCategory(models.Model):
         ("60대", "60대"),
         ("60대 이상", "60대 이상"),
     ]
-    gender = models.CharField(max_length=10, choices=ACTOR_INFO_CHOICES1)
-    age_range = models.CharField(max_length=10, choices=ACTOR_INFO_CHOICES2)
+    gender = models.CharField(max_length=10, blank=True, choices=ACTOR_INFO_CHOICES1, default="남자")
+    age_range = models.CharField(max_length=10, null=True, blank=True, choices=ACTOR_INFO_CHOICES2)
 
     def __str__(self):
         return f"{self.gender} - {self.age_range}"
@@ -103,7 +103,13 @@ class RecruitMain(models.Model):
 
 
 class RecruitDetail(models.Model):
-    recruitmain = models.OneToOneField(RecruitMain, on_delete=models.CASCADE)
+    recruitmain = models.OneToOneField(
+        RecruitMain,
+        on_delete=models.CASCADE,
+        related_name="detail",
+        null=True,
+        blank=True,
+    )
     title = models.CharField(max_length=100, verbose_name="공고 제목")
     director = models.CharField(max_length=50, verbose_name="감독")
     production = models.CharField(max_length=100, verbose_name="제작사")
@@ -119,7 +125,13 @@ class RecruitDetail(models.Model):
 
 
 class RecruitImage(models.Model):
-    recruit = models.ForeignKey(RecruitMain, on_delete=models.CASCADE, related_name="images")
+    recruit = models.ForeignKey(
+        RecruitMain,
+        on_delete=models.CASCADE,
+        related_name="images",
+        null=True,
+        blank=True,
+    )
     image = models.ImageField(
         upload_to="casting_images/",
         validators=[FileExtensionValidator(["jpg", "jpeg", "png"])],
@@ -129,7 +141,14 @@ class RecruitImage(models.Model):
 
 # 공고 상세 페이지에서 지원하는거
 class Application(models.Model):
-    recruit = models.ForeignKey(RecruitMain, on_delete=models.CASCADE, related_name="applications")
+    recruit = models.ForeignKey(
+        RecruitMain,
+        on_delete=models.CASCADE,
+        related_name="applications",
+        null=True,
+        blank=True,
+        verbose_name="모집 공고",
+    )
     height = models.CharField(max_length=10, verbose_name="키")
     weight = models.CharField(max_length=10, verbose_name="몸무게")
     age = models.IntegerField(verbose_name="나이")
