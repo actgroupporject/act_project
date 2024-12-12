@@ -2,6 +2,9 @@ from django.core.validators import FileExtensionValidator
 from django.db import models
 from django.utils import timezone
 
+import members
+from members.models import User
+
 
 class Category(models.Model):
     Big_name = models.CharField(max_length=10, help_text="대분류")
@@ -57,7 +60,7 @@ class HowToCategory(models.Model):
         return reverse("how_to_category_detail", args=[str(self.id)])
 
 
-class Actor_Info_Category(models.Model):
+class ActorInfoCategory(models.Model):
     ACTOR_INFO_CHOICES1 = [
         ("남자", "남자"),
         ("여자", "여자"),
@@ -136,6 +139,7 @@ class RecruitImage(models.Model):
     )
 
 
+# 공고 상세 페이지에서 지원하는거
 class Application(models.Model):
     recruit = models.ForeignKey(
         RecruitMain,
@@ -152,3 +156,27 @@ class Application(models.Model):
 
     class Meta:
         db_table = "applications"
+
+
+class MainPage(models.Model):
+    recruitdetails = models.ForeignKey(RecruitDetail, on_delete=models.CASCADE, related_name="main_pages")
+
+
+class ActorMain(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="actor_profile")
+    bookmarks = models.ManyToManyField(BookMark, blank=True)
+
+    def __str__(self):
+        return self.user.name
+
+
+class ActorImage(models.Model):
+    actor = models.ForeignKey(ActorMain, on_delete=models.CASCADE, related_name="images")
+    image = models.ImageField(
+        upload_to="actor_images/",
+        validators=[FileExtensionValidator(["jpg", "jpeg", "png"])],
+        verbose_name="배우 이미지",
+    )
+
+    def __str__(self):
+        return f"Image for {self.actor.user.name}"
