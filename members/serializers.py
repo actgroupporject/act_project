@@ -1,9 +1,11 @@
+import requests  # type: ignore
 from allauth.socialaccount.models import SocialAccount
 from dj_rest_auth.registration.serializers import (
     SocialLoginSerializer as BaseSocialLoginSerializer,
 )
 from django.contrib.auth import authenticate
 from rest_framework import serializers
+from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 
 from .models import User
 from .validators import validate_kakao_address
@@ -111,8 +113,66 @@ class LoginSerializer(serializers.Serializer):
 
 
 class LogoutSerializer(serializers.Serializer):
-    def validate(self, data):
-        return data
+    refresh = serializers.CharField()
+    provider = serializers.ChoiceField(choices=["google", "facebook", "kakao"], required=False)
+    access_token = serializers.CharField(required=False)  # 소셜 Access Token
+
+    def validate(self, attrs):
+        self.token = attrs["refresh"]
+        self.provider = attrs.get("provider")
+        self.access_token = attrs.get("access_token")
+        try:
+            RefreshToken(self.token)  # Refresh Token 유효성 검증
+        except TokenError:
+            raise serializers.ValidationError({"refresh": "Invalid or expired refresh token."})
+        return attrs
+
+    def save(self, **kwargs):
+        # 1. Refresh Token 블랙리스트 처리
+        try:
+            refresh_token = RefreshToken(self.token)
+            refresh_token.blacklist()  # Refresh Token 블랙리스트 추가
+        except Exception as e:
+            raise serializers.ValidationError("An error occurred while blacklisting the token.")
+
+        # 2. 소셜 로그아웃 처리 (선택)
+        if self.provider and self.access_token:
+            self.perform_social_logout(self.provider, self.access_token)
+
+    def perform_social_logout(self, provider, access_token):
+        """
+        소셜 로그아웃 처리 함수
+        """
+        if provider == "google":
+            self.google_logout(access_token)
+        elif provider == "facebook":
+            self.facebook_logout(access_token)
+        elif provider == "kakao":
+            self.kakao_logout(access_token)
+
+    def google_logout(self, access_token):
+
+        revoke_url = "https://oauth2.googleapis.com/revoke"
+        response = requests.post(revoke_url, params={"token": access_token})
+        if response.status_code != 200:
+            raise serializers.ValidationError({"google": "Failed to revoke Google session."})
+
+    def facebook_logout(self, access_token):
+        import requests
+
+        logout_url = "https://www.facebook.com/logout.php"
+        response = requests.get(logout_url, params={"access_token": access_token})
+        if response.status_code != 200:
+            raise serializers.ValidationError({"facebook": "Failed to revoke Facebook session."})
+
+    def kakao_logout(self, access_token):
+        import requests
+
+        logout_url = "https://kapi.kakao.com/v1/user/logout"
+        headers = {"Authorization": f"Bearer {access_token}"}
+        response = requests.post(logout_url, headers=headers)
+        if response.status_code != 200:
+            raise serializers.ValidationError({"kakao": "Failed to revoke Kakao session."})
 
 
 class AddressValidationSerializer(serializers.Serializer):

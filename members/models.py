@@ -36,6 +36,11 @@ class User(AbstractBaseUser, PermissionsMixin):
         ("user", "User"),
         ("company", "Company"),
     )
+    GENDER_CHOICES = (
+        ("M", "Male"),
+        ("F", "Female"),
+        ("O", "Other"),
+    )
     user_type = models.CharField(max_length=20, choices=USER_TYPE_CHOICES, default="user")
     email = models.EmailField(unique=True, verbose_name="이메일")
     name = models.CharField(max_length=50, verbose_name="이름")
@@ -45,6 +50,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     address = models.CharField(max_length=255, verbose_name="주소", blank=True, validators=[validate_kakao_address])
     description = models.TextField(blank=True, null=True, verbose_name="설명")
     portfolio = models.FileField(upload_to="portfolios/", null=True, blank=True, verbose_name="포트폴리오")
+    gender = models.CharField(max_length=1, choices=GENDER_CHOICES, default="M", verbose_name="성별")
     birthday = models.DateField(null=True, blank=True, verbose_name="생일")
     company_url = models.URLField(max_length=256, blank=True, null=True, verbose_name="화사 URL")
     date_joined = models.DateTimeField(default=now, verbose_name="가입일")

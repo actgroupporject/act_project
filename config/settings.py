@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     "allauth.socialaccount.providers.google",
     "social_django",
     "dj_rest_auth",
+    "rest_framework_simplejwt.token_blacklist",
     "rest_framework.authtoken",
     "rest_framework",
     "drf_spectacular",
@@ -138,6 +139,8 @@ ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_EMAIL_VERIFICATION = "optional"
 
+CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SECURE = True
 
 SOCIALACCOUNT_PROVIDERS = {
     "kakao": {
@@ -176,6 +179,11 @@ SOCIALACCOUNT_PROVIDERS = {
             "prompt": "select_account",
         },
     },
+}
+
+SIMPLE_JWT = {
+    "BLACKLIST_AFTER_ROTATION": True,
+    "ROTATE_REFRESH_TOKENS": True,
 }
 
 
