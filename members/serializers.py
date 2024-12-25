@@ -1,5 +1,6 @@
 import requests  # type: ignore
 from allauth.socialaccount.models import SocialAccount
+from decouple import config
 from dj_rest_auth.registration.serializers import (
     SocialLoginSerializer as BaseSocialLoginSerializer,
 )
@@ -114,7 +115,7 @@ class LoginSerializer(serializers.Serializer):
 
 class LogoutSerializer(serializers.Serializer):
     refresh = serializers.CharField()
-    provider = serializers.ChoiceField(choices=["google", "facebook", "kakao"], required=False)
+    provider = serializers.ChoiceField(choices=["google", "naver", "kakao"], required=False)
     access_token = serializers.CharField(required=False)  # 소셜 Access Token
 
     def validate(self, attrs):
@@ -145,8 +146,8 @@ class LogoutSerializer(serializers.Serializer):
         """
         if provider == "google":
             self.google_logout(access_token)
-        elif provider == "facebook":
-            self.facebook_logout(access_token)
+        elif provider == "naver":
+            self.naver_logout(access_token)
         elif provider == "kakao":
             self.kakao_logout(access_token)
 
@@ -157,16 +158,22 @@ class LogoutSerializer(serializers.Serializer):
         if response.status_code != 200:
             raise serializers.ValidationError({"google": "Failed to revoke Google session."})
 
-    def facebook_logout(self, access_token):
-        import requests
+    def naver_logout(self, access_token):
 
-        logout_url = "https://www.facebook.com/logout.php"
-        response = requests.get(logout_url, params={"access_token": access_token})
+        logout_url = "https://nid.naver.com/oauth2.0/token"
+        params = {
+            "grant_type": "delete",
+            "client_id": config("NAVER_CLIENT_ID"),  # 네이버 개발자 센터에서 발급받은 클라이언트 ID
+            "client_secret": config("NAVER_SECRET"),  # 네이버 개발자 센터에서 발급받은 클라이언트 Secret
+            "access_token": access_token,
+            "service_provider": "NAVER",
+        }
+
+        response = requests.post(logout_url, data=params)
         if response.status_code != 200:
-            raise serializers.ValidationError({"facebook": "Failed to revoke Facebook session."})
+            raise serializers.ValidationError({"naver": "Failed to revoke Naver session."})
 
     def kakao_logout(self, access_token):
-        import requests
 
         logout_url = "https://kapi.kakao.com/v1/user/logout"
         headers = {"Authorization": f"Bearer {access_token}"}
