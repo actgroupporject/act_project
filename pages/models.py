@@ -172,7 +172,6 @@ class Application(models.Model):
         return f"{self.actor} applied to {self.recruit}"
 
 
-
 class Actor(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     user_info = models.CharField(max_length=255, blank=True, help_text="배우 소개")
