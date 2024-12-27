@@ -1,21 +1,12 @@
+from django.conf import settings
+from django.contrib.auth.models import User
 from django.core.validators import FileExtensionValidator
 from django.db import models
-from django.utils import timezone
-
-import members
-from members.models import User
 
 
 class Category(models.Model):
-    Big_name = models.CharField(max_length=10, help_text="대분류")
-    Small_name = models.CharField(max_length=10, help_text="소분류")
-
-    def __str__(self):
-        return f"{self.Big_name} - {self.Small_name}"
-
-
-class PoleCategory(models.Model):
-    POLE_CHOICES = [
+    BIG_NAME_CHOICES = [
+        ("--", "--"),
         ("영화", "영화"),
         ("드라마", "드라마"),
         ("연극", "연극"),
@@ -25,14 +16,24 @@ class PoleCategory(models.Model):
         ("뮤지컬", "뮤지컬"),
         ("기타", "기타"),
     ]
-    name = models.CharField(max_length=10, choices=POLE_CHOICES)
+    SMALL_NAME_CHOICES = [
+        ("--", "--"),
+        ("장편", "장편"),
+        ("단편", "단편"),
+        ("CF", "CF"),
+        ("기타", "기타"),
+    ]
+
+    big_name = models.CharField(max_length=20, choices=BIG_NAME_CHOICES, default=1)
+    small_name = models.CharField(max_length=20, choices=SMALL_NAME_CHOICES, default=1)
 
     def __str__(self):
-        return self.name
+        return f"{self.small_name} - {self.big_name}"
 
 
 class ActorCategory(models.Model):
     ACTOR_CHOICES = [
+        ("--", "--"),
         ("주연", "주연"),
         ("조연", "조연"),
         ("단역", "단역"),
@@ -41,15 +42,15 @@ class ActorCategory(models.Model):
         ("엑스트라", "엑스트라"),
         ("기타", "기타"),
     ]
-    name = models.CharField(max_length=10, choices=ACTOR_CHOICES)
+    name = models.CharField(max_length=10, choices=ACTOR_CHOICES, default=1)
 
     def __str__(self):
         return self.name
 
 
 class HowToCategory(models.Model):
-    HOW_TO_CHOICES = [("Email", "Email"), ("Phone", "Phone"), ("양식", "양식")]
-    method = models.CharField(max_length=10, choices=HOW_TO_CHOICES)
+    HOW_TO_CHOICES = [("--", "--"), ("Email", "Email"), ("Phone", "Phone"), ("양식", "양식")]
+    method = models.CharField(max_length=10, choices=HOW_TO_CHOICES, default=1)
 
     def __str__(self):
         return self.method
@@ -60,12 +61,19 @@ class HowToCategory(models.Model):
         return reverse("how_to_category_detail", args=[str(self.id)])
 
 
-class ActorInfoCategory(models.Model):
-    ACTOR_INFO_CHOICES1 = [
+class Gender(models.Model):
+    GENDER_CHOICES = [
         ("남자", "남자"),
         ("여자", "여자"),
     ]
-    ACTOR_INFO_CHOICES2 = [
+    gender = models.CharField(max_length=10, choices=GENDER_CHOICES, default=1)
+
+    def __str__(self):
+        return self.gender
+
+
+class AgeRange(models.Model):
+    AGE_RANGE_CHOICES = [
         ("10대 이하", "10대 이하"),
         ("10대", "10대"),
         ("20대", "20대"),
@@ -75,11 +83,24 @@ class ActorInfoCategory(models.Model):
         ("60대", "60대"),
         ("60대 이상", "60대 이상"),
     ]
-    gender = models.CharField(max_length=10, blank=True, choices=ACTOR_INFO_CHOICES1, default="남자")
-    age_range = models.CharField(max_length=10, null=True, blank=True, choices=ACTOR_INFO_CHOICES2)
+    age_range = models.CharField(max_length=10, choices=AGE_RANGE_CHOICES, default=1)
 
     def __str__(self):
-        return f"{self.gender} - {self.age_range}"
+        return self.age_range
+
+
+class Education(models.Model):
+    EDUCATION_CHOICES = [
+        ("초등학교", "초등학교"),
+        ("중학교", "중학교"),
+        ("고등학교", "고등학교"),
+        ("대학교", "대학교"),
+        ("기타", "기타"),
+    ]
+    education = models.CharField(max_length=20, choices=EDUCATION_CHOICES, default=1)
+
+    def __str__(self):
+        return self.education
 
 
 class BookMark(models.Model):
@@ -90,43 +111,40 @@ class BookMark(models.Model):
         return self.title
 
 
-class RecruitMain(models.Model):
-    work_title = models.CharField(max_length=100, verbose_name="작품명")
-    work_category = models.ForeignKey(Category, on_delete=models.CASCADE, verbose_name="작품 카테고리")
-    deadline = models.DateField(verbose_name="마감일")
-    bookmarks = models.ManyToManyField(BookMark, blank=True)
-    polecategory = models.ForeignKey(PoleCategory, on_delete=models.CASCADE)
-    actorcategory = models.ForeignKey(ActorCategory, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return self.work_title
-
-
-class RecruitDetail(models.Model):
-    recruitmain = models.OneToOneField(
-        RecruitMain,
-        on_delete=models.CASCADE,
-        related_name="detail",
-        null=True,
-        blank=True,
-    )
-    title = models.CharField(max_length=100, verbose_name="공고 제목")
+# 공고
+class Recruit(models.Model):
+    title = models.CharField("TITLE", max_length=100, blank=True)
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, help_text="작품 카테고리")
+    post_at = models.DateField(help_text="공고 등록일")
+    closing_at = models.DateField(help_text="공고 마감일")
+    bookmark = models.ManyToManyField(BookMark, blank=True)
+    progress = models.BooleanField(default=False, help_text="진행상황")
+    movie_title = models.CharField("TITLE", max_length=100, blank=True)
     director = models.CharField(max_length=50, verbose_name="감독")
     production = models.CharField(max_length=100, verbose_name="제작사")
     requirements = models.TextField(verbose_name="모집 상세 내용")
     casting_type = models.CharField(max_length=50, verbose_name="모집 유형")
     apply_method = models.ForeignKey(HowToCategory, on_delete=models.CASCADE, verbose_name="지원 방법")
 
-    def get_d_day(self):
-        return (self.recruitmain.deadline - timezone.now().date()).days
+    # 유저의 정보가 user인지 company인지 확인
+    @classmethod
+    def create_recruit(cls, user):
+        if not user.is_company():  # 유저의 정보가 company가 아니라면
+            raise ValueError("기업 회원만 공고를 생성할 수 있습니다.")
+        return cls.objects.create()  # 유저의 정보가 company가 맞다면 공고 생성
 
     class Meta:
-        db_table = "casting_detail"
+        db_table = "recruit"
+        verbose_name = "공고"
+        verbose_name_plural = "공고들"
+
+    def __str__(self):
+        return self.title
 
 
 class RecruitImage(models.Model):
     recruit = models.ForeignKey(
-        RecruitMain,
+        Recruit,
         on_delete=models.CASCADE,
         related_name="images",
         null=True,
@@ -139,44 +157,68 @@ class RecruitImage(models.Model):
     )
 
 
-# 공고 상세 페이지에서 지원하는거
 class Application(models.Model):
-    recruit = models.ForeignKey(
-        RecruitMain,
-        on_delete=models.CASCADE,
-        related_name="applications",
-        null=True,
-        blank=True,
-        verbose_name="모집 공고",
-    )
+    recruit = models.ForeignKey(Recruit, on_delete=models.CASCADE, null=False, default=1)
+    gender = models.ForeignKey(Gender, on_delete=models.CASCADE, verbose_name="성별", default=1)
     height = models.CharField(max_length=10, verbose_name="키")
     weight = models.CharField(max_length=10, verbose_name="몸무게")
-    age = models.IntegerField(verbose_name="나이")
+    age_range = models.ForeignKey(AgeRange, on_delete=models.CASCADE, verbose_name="나이", default=1)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "applications"
 
+    def __str__(self):
+        return f"{self.actor} applied to {self.recruit}"
 
-class MainPage(models.Model):
-    recruitdetails = models.ForeignKey(RecruitDetail, on_delete=models.CASCADE, related_name="main_pages")
 
 
-class ActorMain(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="actor_profile")
-    bookmarks = models.ManyToManyField(BookMark, blank=True)
+class Actor(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user_info = models.CharField(max_length=255, blank=True, help_text="배우 소개")
+    stature = models.IntegerField()
+    weight = models.FloatField()
+    education = models.ForeignKey(Education, on_delete=models.SET_NULL, null=True, blank=True)
+    specialty = models.CharField(max_length=255, blank=True)
+    agency = models.CharField(max_length=255, blank=True)
+    sns = models.CharField(max_length=255, blank=True)
+    bookmark = models.ManyToManyField(BookMark, blank=True)
 
     def __str__(self):
-        return self.user.name
+        return self.user.username
 
 
 class ActorImage(models.Model):
-    actor = models.ForeignKey(ActorMain, on_delete=models.CASCADE, related_name="images")
+    actor = models.ForeignKey(
+        Actor,
+        on_delete=models.CASCADE,
+        related_name="images",
+        null=True,
+        blank=True,
+    )
     image = models.ImageField(
-        upload_to="actor_images/",
+        upload_to="Actor_images/",
         validators=[FileExtensionValidator(["jpg", "jpeg", "png"])],
         verbose_name="배우 이미지",
     )
 
+
+class ActorVideo(models.Model):
+    actor = models.ForeignKey(
+        Actor,
+        on_delete=models.CASCADE,
+        related_name="videos",
+        null=True,
+        blank=True,
+    )
+    video = models.FileField(
+        upload_to="Actor_videos/",
+        validators=[FileExtensionValidator(["mp4", "avi", "mov"])],
+        verbose_name="배우 동영상",
+    )
+    title = models.CharField(max_length=100, blank=True, help_text="동영상 제목")
+    description = models.TextField(blank=True, help_text="동영상 설명")
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
     def __str__(self):
-        return f"Image for {self.actor.user.name}"
+        return f"{self.actor.user.username} - {self.title}"

@@ -12,7 +12,9 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 import os
 from pathlib import Path
+
 from decouple import config
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -137,8 +139,6 @@ ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_EMAIL_VERIFICATION = "optional"
 
 
-
-
 SOCIALACCOUNT_PROVIDERS = {
     "kakao": {
         "APP": {
@@ -177,7 +177,6 @@ SOCIALACCOUNT_PROVIDERS = {
         },
     },
 }
-
 
 
 # Password validation

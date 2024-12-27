@@ -1,15 +1,16 @@
-from django.urls import path
+from django.urls import include, path
+from rest_framework.routers import DefaultRouter
 
 from . import views
 
+router = DefaultRouter()
+router.register(r"recruits", views.RecruitViewSet)
+router.register(r"applications", views.ApplicationViewSet)
+router.register(r"actors", views.ActorViewSet)
+router.register(r"actor-images", views.ActorImageViewSet)
+router.register(r"actor-videos", views.ActorVideoViewSet)
+
 urlpatterns = [
-    path("", views.RecruitMainListView.as_view(), name="recruit_main_list"),
-    path("<int:pk>/", views.RecruitMainDetailView.as_view(), name="recruit_main_detail"),
-    path("create/", views.RecruitMainCreateView.as_view(), name="recruit_main_create"),
-    path("<int:pk>/update/", views.RecruitMainUpdateView.as_view(), name="recruit_main_update"),
-    path("<int:pk>/delete/", views.RecruitMainDeleteView.as_view(), name="recruit_main_delete"),
-    path("bookmarks/", views.BookMarkListView.as_view(), name="bookmark_list"),
-    path("bookmarks/create/", views.BookMarkCreateView.as_view(), name="bookmark_create"),
-    path("<int:pk>/add_bookmark/", views.add_bookmark, name="add_bookmark"),
-    path("<int:pk>/apply/", views.ApplicationCreateView.as_view(), name="application_create"),
+    path("", include(router.urls)),
+    path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
 ]
