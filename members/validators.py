@@ -2,12 +2,11 @@ import re
 from typing import Any
 
 import requests  # type: ignore
-from django.contrib.auth.password_validation import validate_password
-from rest_framework.exceptions import ValidationError  # type: ignore
 from decouple import config
-from typing import Any
-import requests
+from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError  # type: ignore
+
 
 class PasswordValidator:
     def __call__(self, value):
@@ -29,9 +28,6 @@ class PasswordValidator:
 
     def get_help_text(self):
         return "비밀번호는 8자리 이상이며 영문, 숫자, 특수문자(!@#$%^&*())를 포합해야 합니다"
-
-
-
 
 
 def validate_kakao_address(value: Any) -> None:

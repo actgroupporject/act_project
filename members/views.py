@@ -13,6 +13,7 @@ from allauth.socialaccount.providers.naver.views import (  # type: ignore
     NaverOAuth2Adapter,
 )
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client  # type: ignore
+from decouple import config
 from dj_rest_auth.registration.views import (
     SocialLoginView as BaseSocialLoginView,  # type: ignore
 )
@@ -24,7 +25,7 @@ from rest_framework import status  # type: ignore
 from rest_framework.permissions import IsAuthenticated  # type: ignore
 from rest_framework.response import Response  # type: ignore
 from rest_framework.views import APIView  # type: ignore
-from decouple import config
+
 from .serializers import (  # type: ignore
     CompanyRegisterSerializer,
     LoginSerializer,
